@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "kingdom": {
+      "command": "/home/techcorp2024/kingdom/.venv/bin/python",
+      "args": ["/home/techcorp2024/kingdom/platform/mcp/server.py"]
+    }
+  }
+}

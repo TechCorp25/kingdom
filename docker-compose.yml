@@ -1,0 +1,19 @@
+# Local Postgres for Kingdom. Bound to localhost only.
+# Start with:  docker compose up -d
+services:
+  postgres:
+    image: postgres:17
+    container_name: kingdom-postgres
+    environment:
+      POSTGRES_DB: kingdom
+      POSTGRES_USER: kingdom
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kingdom -d kingdom"]
+      interval: 5s
+      timeout: 5s
+      retries: 5

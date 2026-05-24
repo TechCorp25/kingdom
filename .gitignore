@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtualenv
+.venv/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Node (if project tooling ever lands here)
+node_modules/
+
+# Data — never commit Postgres data dirs, backups, or indexes
+data/postgres/
+data/backups/
+data/indexes/
+
+# OS / editor
+.DS_Store
+*.swp
+
+# NOTE: artifact-content ignore rules are added in Phase 8 (artifact generation).
+# For now artifacts/ is tracked as structure via .gitkeep.
+
+# Tracked-project working copies — read by knowledge ingestion, not committed here.
+/projects/*/
+
+# Generated artifact outputs (snapshots, exports) are not committed.
+/artifacts/*/*
+!/artifacts/*/.gitkeep
