@@ -109,3 +109,6 @@ uv run mypy                                            # type-check
 uv run alembic upgrade head                            # apply migrations
 uv run alembic revision --autogenerate -m "msg"       # new migration
 ```
+
+## Active Session Baseline
+Current source of truth: docs/kingdom-continuation-2026-05-27T21-00-00.md
