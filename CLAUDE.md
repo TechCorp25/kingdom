@@ -84,6 +84,20 @@ migration.
 - Migrations are reviewed before apply; constraint names follow the naming convention
   in `models/base.py` so autogenerate stays deterministic.
 
+## Git / merge hygiene
+
+- PRs are squash-merged. A squash commit on `main` is NOT an ancestor of its source
+  branch, so `git merge/pull --ff-only` will refuse afterward — treat that refusal as
+  the signal the branch diverged, never as something to force past.
+- Never force-push a post-squash feature branch onto `main` (it erases the PR merge).
+  To land commits made after a squash, cherry-pick (or `rebase --onto origin/main`)
+  only the genuinely-new commits, then fast-forward + push.
+- "Committed locally" ≠ "on main". Before building on prior work, confirm it shipped:
+  `git diff --stat origin/main HEAD` and check key files exist on `origin/main`.
+- Delete the source branch in the same step as the squash-merge, and branch fresh from
+  updated `main`. Never keep committing on a branch whose earlier state was squashed —
+  that is exactly how work gets stranded off `main`.
+
 ## Build order
 
 1. Workspace skeleton ✓
@@ -111,4 +125,4 @@ uv run alembic revision --autogenerate -m "msg"       # new migration
 ```
 
 ## Active Session Baseline
-Current source of truth: docs/kingdom-continuation-2026-05-27T21-00-00.md
+Current source of truth: docs/kingdom-continuation-2026-05-31T11-30-00.md
