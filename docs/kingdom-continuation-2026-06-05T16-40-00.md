@@ -371,6 +371,43 @@ npm run build --prefix frontend                  # expect green, ~2960 modules
 | `~/kingdom/.env` | Kingdom secrets (gitignored) |
 
 ---
-*End of baseline. Filename: kingdom-continuation-2026-06-05T07-00-00.md*
-*Supersedes 2026-05-27T21-00-00. B merged tip `0083c5b` recorded (§6.11, §8).*
+## 12. ★ Kingdom-repo hygiene — UNRESOLVED, triage FIRST next session
+
+Surfaced at this session's close via `git status` in `~/kingdom` (NOT committed — the
+continuation doc was committed in isolation as `549ce31`, deliberately leaving the
+following untouched). This is the "parallel processes cause divergence" hazard showing
+up in the **kingdom platform repo's** own working tree. Do NOT blanket `git add -A` —
+triage each:
+
+1. **`automate-dev` skill modified + a large untracked skill suite landed.**
+   - Modified (uncommitted): `automate-dev/SKILL.md` + `references/{agents,quality-gates,
+     token-budgeting,workflow-phases}.md` + `scripts/token_budget_monitor.py`.
+   - Untracked inside automate-dev: `.claude-plugin/`, `agent-teams/`, nested `skills/`,
+     `commands/team-*.md` (×7), `references/agent-teams-integration.md`, and an
+     **`Archive.zip`** (a zip inside the skill dir — a smell; do NOT commit it).
+   - ~45 NEW top-level skills under `.claude/skills/` (e.g. `backend-development`,
+     `codebase-review`, `frontend-design`, `use-railway`, `use-zello`, `skill-creator`,
+     `git-pr-workflows`, …). Contradicts the prior note that only `codebase-review` was
+     selectively adopted from `claude-caliper` — a full suite is now present.
+   - Implication: A and B were reviewed against a **modified** `automate-dev`, so its
+     phase numbers / script names may differ from the last committed version. It worked,
+     but the skill state is now untracked and unreproducible. Decide what to keep, delete
+     `Archive.zip`, then commit deliberately.
+   - Triage cmds: `git -C ~/kingdom diff --stat .claude/skills/automate-dev/`;
+     `ls ~/kingdom/.claude/skills/`; `unzip -l …/automate-dev/Archive.zip` (list, don't extract).
+
+2. **Three orphan continuation docs — uncommitted, NEWER than the 2026-05-27 base this
+   doc was built on:** `docs/kingdom-continuation-2026-05-29T22-30-00.md`,
+   `…2026-05-31T12-00-00.md`, `…2026-05-31T12-30-00.md`.
+   - These likely hold the authoritative Priority-3 / Railway-worker state that §6.9 here
+     only **reconstructed from memory**. Read the newest (`05-31T12-30-00`) and reconcile:
+     if richer, it supersedes §6.9 and this doc should defer to it.
+   - Decide: commit them (real state) or delete (abandoned drafts). Don't leave them
+     orphaned a third session.
+
+---
+
+*End of baseline. Filename: kingdom-continuation-2026-06-05T16-40-00.md*
+*Supersedes 2026-05-27T21-00-00 (and reconcile vs the three orphan docs in §12.2).*
+*B merged tip `0083c5b`; branch tip `0f61a90`; this doc committed `549ce31`.*
 *Next update on session close: kingdom-continuation-YYYY-MM-DDTHH-MM-SS.md*
