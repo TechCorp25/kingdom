@@ -1,6 +1,6 @@
 ---
 name: automate-dev
-description: "Autonomous development workflow with iterative self-correction loops. Orchestrates the full build-review-test-fix cycle for any development task: delegates work to specialised subagents, runs code review and simplification passes, executes automated testing, detects and rejects band-aid fixes, enforces zero breaking changes, and loops until all issues are permanently resolved with production-ready, backwards-compatible code. Use whenever building features, fixing bugs, refactoring, or performing any multi-step development work. Triggers on: 'build', 'implement', 'develop', 'create feature', 'fix bug', 'refactor', 'automate', 'iterate until done', 'development workflow', 'build and test', or any task requiring autonomous code production with quality enforcement."
+description: "Autonomous development workflow with iterative self-correction loops and multi-agent team coordination. Orchestrates the full build-review-test-fix cycle for any development task: delegates work to specialised solo subagents (code-explorer, code-architect, code-reviewer) and parallel agent teams (team-lead, team-implementer, team-reviewer, team-debugger), runs multi-dimensional code review and simplification passes, executes automated testing, detects and rejects band-aid fixes, enforces zero breaking changes, and loops until all issues are permanently resolved with production-ready, backwards-compatible code. Use whenever building features, fixing bugs, refactoring, or performing any multi-step development work. Triggers on: 'build', 'implement', 'develop', 'create feature', 'fix bug', 'refactor', 'automate', 'iterate until done', 'development workflow', 'build and test', 'team review', 'parallel debug', 'multi-agent', 'spawn team', or any task requiring autonomous code production with quality enforcement."
 ---
 
 # Automated Development Skill
@@ -63,15 +63,84 @@ FD-1: Discovery → FD-2: Codebase Exploration → FD-3: Clarifying Questions
 
 Read `references/feature-development.md` when entering Feature Development mode.
 
+### Mode 3: Team Coordination (Parallel Multi-Agent)
+
+For complex work requiring multiple agents operating in parallel with file
+ownership boundaries, competing hypotheses, or multi-dimensional review.
+Activates the team-agents toolkit (team-lead, team-implementer, team-reviewer,
+team-debugger) via the `/team-*` slash commands.
+
+```
+Trigger detected → Spawn team via /team-{spawn|feature|debug|review}
+    → Decompose into parallel work streams (file ownership, hypotheses, dimensions)
+    → Monitor via /team-status, rebalance via /team-delegate
+    → Synthesize consolidated output
+    → Hand off to Core Loop (Phase 3 onward) for quality gates
+    → /team-shutdown when complete
+```
+
+Read `references/agent-teams-integration.md` when activating team mode, plus
+the relevant internal skill: `skills/team-composition-patterns/SKILL.md`,
+`skills/parallel-feature-development/SKILL.md`, `skills/multi-reviewer-patterns/SKILL.md`,
+`skills/parallel-debugging/SKILL.md`, `skills/task-coordination-strategies/SKILL.md`,
+or `skills/team-communication-protocols/SKILL.md`.
+
 ### Mode Selection
 
-| Task Type | Mode | Entry Point |
-|-----------|------|-------------|
-| New feature in unfamiliar area | Feature Development | FD-1: Discovery |
-| Bug fix with known location | Core Loop | Phase 1: Analyse |
-| Refactor with clear scope | Core Loop | Phase 1: Analyse |
-| New feature, architecture known | Core Loop | Phase 1: Analyse |
-| Ambiguous request needing exploration | Feature Development | FD-1: Discovery |
+| Task Type | Mode | Entry Point | Team Escalation |
+|-----------|------|-------------|-----------------|
+| New feature in unfamiliar area | Feature Development | FD-1: Discovery | `/team-feature` if multi-stream |
+| Bug fix with known location | Core Loop | Phase 1: Analyse | — |
+| Bug with multiple plausible causes | Core Loop + Team | Phase 1 then `/team-debug` | `/team-debug --hypotheses 3+` |
+| Refactor with clear scope | Core Loop | Phase 1: Analyse | `/team-feature` for large refactors |
+| New feature, architecture known | Core Loop | Phase 1: Analyse | `/team-feature` if 3+ work streams |
+| Ambiguous request needing exploration | Feature Development | FD-1: Discovery | `/team-spawn research` for parallel exploration |
+| Multi-dimensional code review | Core Loop | Phase 3 | `/team-review` (security/perf/arch/testing/a11y) |
+| Full-stack feature | Feature Development | FD-1: Discovery | `/team-spawn fullstack` |
+| Migration / large refactor | Feature Development | FD-1: Discovery | `/team-spawn migration` |
+| Comprehensive security audit | Core Loop | Phase 3 | `/team-spawn security` |
+
+**Team escalation rule of thumb**: Engage Mode 3 when the task can be cleanly
+decomposed into 3+ independent work streams, OR when multi-dimensional analysis
+is needed (≥3 review dimensions, ≥3 competing hypotheses), OR when the
+work spans multiple architectural layers (frontend/backend/tests/infrastructure).
+For everything else, the solo subagent patterns from Modes 1–2 are more
+efficient.
+
+## Model Deployment Strategy
+
+Optimised for **Claude Opus 4.7** (`claude-opus-4-7`) as the flagship model
+for high-difficulty workflows, with Sonnet retained for exploration and
+breadth-focused work.
+
+### Difficulty-Based Routing
+
+| Difficulty | Model | Effort | Examples |
+|-----------|-------|--------|----------|
+| low | sonnet | default | Simple reads, formatting |
+| medium | sonnet | high | Multi-file tracing, routine refactors |
+| **high** | **claude-opus-4-7** | **xhigh** | Code review, architecture, self-assessment, quality gates |
+| xhigh | **claude-opus-4-7** | **xhigh** | Complex refactoring, subtle debugging |
+| max | **claude-opus-4-7** | **max** | Formal verification, security audits |
+
+### Opus 4.7 Is Required For
+
+- **Agent output self-review** — any agent reviewing work produced by another agent
+- **Code quality assessment** — simplicity, DRY, elegance judgment
+- **Linting judgment** — subjective quality gates beyond rule-based scripts
+- **Architectural decisions** — choosing between implementation approaches
+- **Final validation (Phase 7)** — comprehensive quality gate before ship
+- **Any task classified as `high` difficulty or above**
+
+### Retained Sonnet Usage
+
+- **code-explorer agents** — breadth-focused codebase tracing (medium difficulty)
+- **Initial inventory and dependency mapping** — rule-based, high-volume work
+- **Test execution orchestration** — mostly deterministic
+- **Deployment readiness checks** — script-based validation
+
+See `references/model-deployment.md` for complete strategy, migration guide,
+and prompt adjustments for Opus 4.7's literal instruction following.
 
 ## Model Deployment Strategy
 
@@ -110,7 +179,11 @@ and prompt adjustments for Opus 4.7's literal instruction following.
 
 ## Specialised Agents
 
-Three agent types can be launched via the `delegation` skill for
+Two complementary agent families serve the workflow:
+
+### Solo Subagents (Default — `delegation` skill)
+
+Three agent types launched via `subagent` / `startAsyncSubagent` for
 judgment-intensive analysis. Use alongside automated scripts for
 comprehensive coverage.
 
@@ -120,18 +193,50 @@ comprehensive coverage.
 | **code-architect** | Architecture design and implementation blueprints | **claude-opus-4-7** | **xhigh** | 2 (Build) |
 | **code-reviewer** | Quality review — simplicity, correctness, conventions | **claude-opus-4-7** | **xhigh** | 3 (Review), 7 (Validate) |
 
-Read `references/agents.md` for full agent definitions, prompts, and
-orchestration patterns.
+Solo subagent definitions live in `agents/`. Read `references/agents.md` for
+full prompts and orchestration patterns.
+
+### Team Agents (Escalation — `/team-*` commands)
+
+Four coordinated agent types launched as a managed team via the team-spawn
+infrastructure. Use when work decomposes into ≥3 independent streams or
+requires multi-dimensional parallel analysis.
+
+| Agent | Role | Model | Colour | Primary Use |
+|-------|------|-------|--------|-------------|
+| **team-lead** | Orchestrator: decomposes work, manages file ownership, synthesises results | **opus** | blue | Coordinate `/team-feature`, `/team-spawn fullstack/migration` |
+| **team-implementer** | Builds within strict file ownership boundaries; coordinates at integration points | **opus** | yellow | `/team-feature`, `/team-spawn fullstack/migration` |
+| **team-reviewer** | Single-dimension reviewer (security / performance / architecture / testing / accessibility) | **opus** | green | `/team-review`, `/team-spawn security` |
+| **team-debugger** | Hypothesis-driven investigator with confidence ratings and causal chains | **opus** | red | `/team-debug` (Analysis of Competing Hypotheses) |
+
+Team agent definitions live in `agent-teams/agents/`. Read
+`references/agent-teams-integration.md` for command-by-phase mapping and
+team selection heuristics.
+
+**Solo vs team selection rule**:
+
+| Signal | Choose Solo | Choose Team |
+|--------|-------------|-------------|
+| Work scope | Single concern, ≤2 streams | ≥3 independent streams |
+| Coordination cost | Low (no shared files) | Worth the overhead (clear ownership boundaries) |
+| Review breadth | 3 standard dimensions (simplicity/correctness/conventions) | 4-5 dimensions (add security/perf/a11y) |
+| Debug clarity | Single suspected cause | Multiple plausible root causes |
+| Display | Inline | tmux/iTerm2 panes (set `teammateMode` in `~/.claude/settings.json`) |
+| Pre-flight | Always available | Requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` |
 
 ### Agent + Script Combination
 
-Agents provide **judgment**. Scripts provide **rule enforcement**. Use both:
+Agents provide **judgment**. Scripts provide **rule enforcement**. Teams provide
+**parallel scale**. Use all three layers:
 
 ```
 Phase 3 (Review):
-├── Agent: code-reviewer (simplicity)     ─┐
-├── Agent: code-reviewer (correctness)     │──▸ Consolidated quality report
-├── Agent: code-reviewer (conventions)    ─┘
+├── Solo Agent: code-reviewer (simplicity)     ─┐
+├── Solo Agent: code-reviewer (correctness)     │
+├── Solo Agent: code-reviewer (conventions)    ─┤──▸ Consolidated quality report
+├── (escalation) Team: /team-review            ─┤    (deduplicated, severity-ranked
+│   └── team-reviewer × {security, perf,         │     per multi-reviewer-patterns)
+│       architecture, testing, accessibility}    │
 ├── Script: code_reviewer.py (band-aids, security, breaking changes)
 └── Script: fix_validator.py (preservation check)
 ```
@@ -162,6 +267,13 @@ increases reasoning depth. Cost control is enforced at three layers:
 
 Budgets scale by difficulty multiplier: low 0.5× / medium 1.0× / high 1.5× /
 xhigh 2.0× / max 3.0×.
+
+**Team mode multipliers** (Mode 3): when escalating a phase to a team,
+multiply that phase's budget by team size. Example: `/team-review` with 5
+reviewers → Phase 3 budget × 5. Track per-team token usage via
+`token_budget_monitor.py` records tagged with the team name. The `90%`
+alert threshold halts new parallel team launches first; existing teammates
+finish their current task.
 
 ### Usage
 
@@ -219,6 +331,18 @@ await startAsyncSubagent({
 ```
 After agents return, read all identified files to build context.
 
+**Team-Escalated Analysis** (broad / multi-area exploration):
+When the analysis spans ≥3 distinct areas (e.g. backend + frontend + infra +
+docs), prefer the research team preset:
+```
+/team-spawn research --members 3
+```
+Each `general-purpose` teammate is assigned a different research question
+(codebase area, library comparison, doc set). Apply
+`skills/task-coordination-strategies/SKILL.md` for decomposition and
+`skills/team-communication-protocols/SKILL.md` for messaging discipline.
+Synthesise results into the iteration plan, then resume Phase 1 inventory.
+
 Run: `python scripts/dev_orchestrator.py analyse <project_root> --targets <file1> <file2>`
 
 ### Phase 2: Build
@@ -251,6 +375,36 @@ For delegated tasks (when `subagent` / `startAsyncSubagent` is available):
 - Use `subagent` for sequential dependencies
 - Pass skill files via `relevantFiles` when subagents need skill context
 
+**Team-Escalated Build** (parallel multi-stream implementation):
+For features that decompose cleanly into ≥3 work streams with non-overlapping
+file ownership, escalate to a managed team:
+
+```
+# Standard parallel build (1 lead + 2 implementers)
+/team-feature "<feature description>" --team-size 2 --plan-first
+
+# Full-stack split (1 lead + frontend + backend + tests)
+/team-spawn fullstack --name <feature-team>
+
+# Large refactor / migration (1 lead + 2 implementers + 1 reviewer)
+/team-spawn migration --name <migration-team>
+```
+
+Apply `skills/parallel-feature-development/SKILL.md` for file-ownership
+strategies (by directory / module / layer) and integration patterns
+(vertical slice / horizontal layer / hybrid). Apply
+`skills/team-composition-patterns/SKILL.md` for team-size sizing heuristics.
+
+The team-lead enforces:
+- One owner per file (Cardinal Rule from parallel-feature-development)
+- Interface contracts for cross-team boundaries (immutable mid-stream)
+- Sequential application of any genuinely shared files via the lead
+- `blockedBy` / `blocks` task relationships for dependency sequencing
+
+Once the team reports completion, the workflow re-enters Phase 3 (Review)
+with all modified files. **Quality gates remain non-negotiable** — team output
+is reviewed identically to solo output.
+
 ### Phase 3: Review
 
 Automated code review against quality gates:
@@ -274,6 +428,33 @@ await startAsyncSubagent({
 });
 ```
 Consolidate agent findings with script results into a unified quality report.
+
+**Team-Escalated Review** (multi-dimensional / security audit):
+For changes touching auth, data, public APIs, or UI — or any change requiring
+≥4 review dimensions — escalate to a parallel reviewer team:
+
+```
+# Standard multi-dimensional review (security, performance, architecture)
+/team-review <target> --reviewers security,performance,architecture
+
+# Full review with testing + accessibility for UI/feature work
+/team-review <target> --reviewers security,performance,architecture,testing,accessibility
+
+# Comprehensive security audit
+/team-spawn security --name security-audit
+```
+
+`<target>` accepts: file path, directory, git diff range (e.g. `main...HEAD`),
+or PR number (`#123`).
+
+Apply `skills/multi-reviewer-patterns/SKILL.md` for:
+- Review-dimension allocation by scenario (API / frontend / DB migration / etc.)
+- Finding deduplication rules (same-location merge, conflicting-severity escalation)
+- Severity calibration (Critical / High / Medium / Low criteria)
+- Consolidated report template with per-dimension counts
+
+Combine team findings with solo-agent findings AND script results into the
+unified quality report. The same gates apply.
 
 Review checks:
 - **Breaking changes**: Any detected → HALT, do not proceed
@@ -315,6 +496,28 @@ When tests or review reveal issues:
    - Hardcode values to bypass logic
    - Add conditional branches that skip broken paths
    - Use `# noqa`, `# type: ignore`, or similar suppressions as the fix itself
+
+**Team-Escalated Debugging** (multiple plausible root causes):
+When initial root-cause analysis surfaces ≥2 plausible hypotheses, escalate
+to the Analysis of Competing Hypotheses (ACH) workflow:
+
+```
+/team-debug "<error description or file path>" --hypotheses 3 --scope module
+```
+
+Each `team-debugger` teammate is assigned one hypothesis from the 6 failure-mode
+categories (Logic / Data / State / Integration / Resource / Environment) and
+investigates independently with file:line evidence and confidence ratings.
+The lead arbitrates and ranks confirmed hypotheses to determine the true root
+cause. Apply `skills/parallel-debugging/SKILL.md` for:
+- Hypothesis generation framework (6 categories)
+- Evidence collection standards (Direct / Correlational / Testimonial / Absence)
+- Confidence calibration (High >80% / Medium 50-80% / Low <50%)
+- Result arbitration protocol
+
+The chosen fix still passes through `fix_validator.py` and the band-aid
+rejection rules. **No exceptions to the band-aid policy regardless of how
+the root cause was identified.**
 
 Run: `python scripts/fix_validator.py <original> <fixed> --project-root <root>`
 
@@ -382,10 +585,51 @@ Load these as needed during workflow execution:
 | Iteration Protocols | `references/iteration-protocols.md` | Loop management, max iterations, escalation |
 | Quality Gates | `references/quality-gates.md` | Thresholds, scoring, pass/fail criteria |
 | Code Simplification | `references/code-simplification.md` | Simplification rules and patterns |
-| Agents | `references/agents.md` | Agent definitions, prompts, orchestration patterns |
+| Agents | `references/agents.md` | Solo agent definitions, prompts, orchestration patterns |
 | Feature Development | `references/feature-development.md` | Guided feature development workflow (FD-1 through FD-7) |
 | Model Deployment | `references/model-deployment.md` | Opus 4.7 strategy, difficulty classification, routing |
 | Token Budgeting | `references/token-budgeting.md` | Phase budgets, caching, monitoring, cost patterns |
+| **Agent Teams Integration** | `references/agent-teams-integration.md` | When to escalate to teams, command-by-phase mapping |
+
+## Internal Skills Library (Team Coordination)
+
+When operating in Mode 3 (Team Coordination), load the relevant internal skill
+SKILL.md as the authoritative reference. These skills live under `skills/`
+inside this package and are loaded on-demand:
+
+| Skill | Path | When to Read |
+|-------|------|-------------|
+| **team-composition-patterns** | `skills/team-composition-patterns/SKILL.md` | Choosing team size, preset selection, agent-type selection, display-mode config |
+| **parallel-feature-development** | `skills/parallel-feature-development/SKILL.md` | File-ownership strategies, conflict avoidance, integration patterns, branch management |
+| **multi-reviewer-patterns** | `skills/multi-reviewer-patterns/SKILL.md` | Review-dimension allocation, finding deduplication, severity calibration, consolidated reporting |
+| **parallel-debugging** | `skills/parallel-debugging/SKILL.md` | Analysis of Competing Hypotheses, evidence standards, confidence levels, root-cause arbitration |
+| **task-coordination-strategies** | `skills/task-coordination-strategies/SKILL.md` | Task decomposition, dependency graphs, task description templates, workload monitoring |
+| **team-communication-protocols** | `skills/team-communication-protocols/SKILL.md` | Message-type selection, plan approval, shutdown procedures, anti-patterns |
+
+**Skill loading rule**: Read the relevant SKILL.md *before* invoking the
+matching `/team-*` command. This ensures the workflow applies the skill's
+heuristics (sizing, dimensions, ownership rules) rather than improvising.
+
+## Slash Commands (Team Coordination)
+
+Seven slash commands ship with this skill for team lifecycle and operations.
+Each requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in the environment.
+
+| Command | Purpose | Primary Phase |
+|---------|---------|---------------|
+| `/feature-development` | Launches the guided 7-phase feature development workflow (Mode 2) | Pre-Phase 1 |
+| `/team-spawn <preset\|custom>` | Spawn a team using a preset (review/debug/feature/fullstack/research/security/migration) or custom composition | Setup |
+| `/team-feature <description>` | Parallel feature build with file-ownership boundaries (lead + N implementers) | 2 (Build) |
+| `/team-debug <error>` | Competing-hypotheses debugging with N parallel investigators | 5 (Fix) |
+| `/team-review <target>` | Multi-dimensional parallel code review with consolidated, deduplicated report | 3 (Review), 7 (Validate) |
+| `/team-status [team]` | Display team members, task statuses, and progress | All (monitoring) |
+| `/team-delegate [team]` | Workload dashboard, task assignment, rebalancing | All (coordination) |
+| `/team-shutdown [team]` | Graceful shutdown — collect final results, clean up resources | Cleanup |
+
+**Lifecycle**: every team launched (via spawn / feature / debug / review)
+must be terminated via `/team-shutdown` before the workflow declares
+completion. Leaving teams running wastes API resources and pollutes
+`~/.claude/teams/`.
 
 ## Script Reference
 
@@ -404,22 +648,33 @@ Load these as needed during workflow execution:
 This skill orchestrates and delegates to other skills:
 
 - **production-code-quality**: Called during Phase 3 and Phase 7 for assessment
-- **delegation**: Used across all phases for parallel task execution via subagents and specialised agents (code-explorer, code-architect, code-reviewer)
+- **delegation**: Used across all phases for parallel task execution via solo subagents and specialised agents (code-explorer, code-architect, code-reviewer)
 - **testing**: Used in Phase 4 for end-to-end Playwright-based testing
 - **code_review (architect)**: Used in Phase 3 for deep architectural analysis via the `architect()` function
 - **deployment**: Used in Phase 8 for deployment configuration
 
+### Internal Team Skills (bundled, see `skills/`)
+
+When Mode 3 (Team Coordination) is active, the workflow autonomously loads:
+
+- **team-composition-patterns** — sizing & preset selection before any team spawn
+- **task-coordination-strategies** — task decomposition & dependency-graph design
+- **team-communication-protocols** — message-type discipline, plan approval, shutdown
+- **parallel-feature-development** — file ownership & integration patterns (`/team-feature`)
+- **multi-reviewer-patterns** — dimension allocation & finding deduplication (`/team-review`)
+- **parallel-debugging** — Analysis of Competing Hypotheses (`/team-debug`)
+
 ### Agent Integration Summary
 
-| Workflow Phase | Agent Type | Script Complement |
-|---------------|------------|-------------------|
-| Phase 1 (Analyse) | code-explorer × 2-3 | `dev_orchestrator.py analyse` |
-| Phase 2 (Build) | code-architect × 2-3 | — |
-| Phase 3 (Review) | code-reviewer × 3 | `code_reviewer.py`, `fix_validator.py` |
-| Phase 5 (Fix) | — | `fix_validator.py` |
-| Phase 6 (Simplify) | — | `code_simplifier.py` |
-| Phase 7 (Validate) | code-reviewer × 3 | `dev_orchestrator.py validate` |
-| Phase 8 (Ship) | — | `deployment_readiness.py` |
+| Workflow Phase | Solo Agents | Team Escalation | Script Complement |
+|---------------|------------|-----------------|-------------------|
+| Phase 1 (Analyse) | code-explorer × 2-3 | `/team-spawn research` (≥3 areas) | `dev_orchestrator.py analyse` |
+| Phase 2 (Build) | code-architect × 2-3 | `/team-feature`, `/team-spawn fullstack/migration` | — |
+| Phase 3 (Review) | code-reviewer × 3 | `/team-review`, `/team-spawn security` | `code_reviewer.py`, `fix_validator.py` |
+| Phase 5 (Fix) | — | `/team-debug` (≥2 hypotheses) | `fix_validator.py` |
+| Phase 6 (Simplify) | — | — | `code_simplifier.py` |
+| Phase 7 (Validate) | code-reviewer × 3 | `/team-review` (full dimensions) | `dev_orchestrator.py validate` |
+| Phase 8 (Ship) | — | `/team-shutdown` (cleanup) | `deployment_readiness.py` |
 
 ## Iteration Plan Format
 
@@ -480,15 +735,35 @@ File: `.automate-dev/iteration_plan.md`
 Copy the package contents to your project:
 
 ```bash
-# Agents — required for agent-enhanced phases
+# Solo agents — required for agent-enhanced phases (Modes 1 & 2)
 cp automate-dev/agents/*.md .claude/agents/
 
-# Commands — optional, enables /feature-development slash command
+# Team agents — required for Mode 3 (Team Coordination)
+cp automate-dev/agent-teams/agents/*.md .claude/agents/
+
+# Commands — enables /feature-development AND all /team-* slash commands
 cp automate-dev/commands/*.md .claude/commands/
 
+# Internal team skills — loaded on demand during Mode 3
+cp -r automate-dev/skills .claude/skills/automate-dev-teams
+
 # Skill — install via Claude Code skill installation
-# or copy to your skills directory
+# or copy SKILL.md and references/ to your skills directory
 ```
+
+### Enable Agent Teams (Mode 3 prerequisite)
+
+```bash
+export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
+
+# Optional: configure display mode in ~/.claude/settings.json
+# {
+#   "teammateMode": "tmux"  // or "iterm2", "in-process"
+# }
+```
+
+Without `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`, the `/team-*` commands
+are unavailable but the skill degrades gracefully to solo-subagent mode.
 
 ### Configure Default Model (Optional)
 
@@ -524,16 +799,37 @@ gracefully to script-only operation.
 
 ```
 automate-dev/
-├── SKILL.md                              Main skill definition (8-phase core loop)
+├── SKILL.md                              Main skill definition (8-phase core loop + 3 modes)
 ├── LICENSE.txt                           Apache 2.0
-├── agents/                               Agent definitions for Claude Code
+├── agents/                               Solo agent definitions (Modes 1 & 2)
 │   ├── code-explorer.md                  Codebase tracing (sonnet, yellow)
 │   ├── code-architect.md                 Architecture design (claude-opus-4-7 xhigh, green)
 │   └── code-reviewer.md                  Deep quality review (claude-opus-4-7 xhigh, red)
+├── agent-teams/                          Team agent definitions (Mode 3)
+│   └── agents/
+│       ├── team-lead.md                  Orchestrator (opus, blue) — decomposes & synthesises
+│       ├── team-implementer.md           Parallel builder (opus, yellow) — file-ownership boundaries
+│       ├── team-reviewer.md              Single-dimension reviewer (opus, green)
+│       └── team-debugger.md              Hypothesis investigator (opus, red)
 ├── commands/                             Slash commands for Claude Code
-│   └── feature-development.md            Guided 7-phase feature development workflow
+│   ├── feature-development.md            Guided 7-phase feature development workflow (Mode 2)
+│   ├── team-spawn.md                     Spawn team via preset or custom composition
+│   ├── team-feature.md                   Parallel feature build with file ownership
+│   ├── team-debug.md                     Competing-hypotheses debugging
+│   ├── team-review.md                    Multi-dimensional parallel code review
+│   ├── team-status.md                    Team monitoring dashboard
+│   ├── team-delegate.md                  Workload assignment & rebalancing
+│   └── team-shutdown.md                  Graceful team termination
+├── skills/                               Internal team-coordination skills (Mode 3)
+│   ├── team-composition-patterns/        Sizing heuristics, presets, agent-type selection
+│   ├── parallel-feature-development/     File ownership, conflict avoidance, integration
+│   ├── multi-reviewer-patterns/          Dimension allocation, dedup, severity calibration
+│   ├── parallel-debugging/               Analysis of Competing Hypotheses
+│   ├── task-coordination-strategies/     Decomposition, dependency graphs, monitoring
+│   └── team-communication-protocols/     Messaging discipline, plan approval, shutdown
 ├── references/                           On-demand reference documentation
-│   ├── agents.md                         Agent definitions, prompts, orchestration patterns
+│   ├── agents.md                         Solo agent definitions, prompts, orchestration patterns
+│   ├── agent-teams-integration.md        When/how to escalate to teams; per-phase mapping
 │   ├── feature-development.md            Feature development workflow detail (FD-1 to FD-7)
 │   ├── workflow-phases.md                Detailed phase instructions with examples
 │   ├── iteration-protocols.md            Loop management, stall detection, escalation
@@ -550,4 +846,3 @@ automate-dev/
     ├── deployment_readiness.py           Security, error handling, dependency checks
     └── token_budget_monitor.py           Token usage tracking, budget enforcement, cost reports
 ```
-

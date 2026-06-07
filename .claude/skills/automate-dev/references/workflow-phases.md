@@ -11,9 +11,21 @@
 7. [Phase 7: Validate](#phase-7-validate)
 8. [Phase 8: Ship](#phase-8-ship)
 
+> **Mode 3 escalation**: each phase below can escalate to a parallel agent
+> team when its trigger is met (≥3 independent streams, ≥2 plausible
+> hypotheses, ≥4 review dimensions, etc.). Escalation rules, preset matrix,
+> pre-flight checklist, and decision trees live in
+> [`agent-teams-integration.md`](./agent-teams-integration.md). Quality
+> gates apply identically to solo and team output — see
+> [`quality-gates.md`](./quality-gates.md).
+
 ---
 
 ## Phase 1: Analyse
+
+> **Team escalation (Mode 3)**: if analysis spans ≥3 distinct areas (e.g.
+> backend + frontend + infra + docs), use `/team-spawn research --members 3`.
+> See [`agent-teams-integration.md#phase-1-analyse--team-spawn-research`](./agent-teams-integration.md#phase-1-analyse--team-spawn-research).
 
 ### Purpose
 Establish complete understanding of the existing codebase and define measurable acceptance criteria before writing any code.
@@ -85,6 +97,13 @@ orchestration patterns.
 ---
 
 ## Phase 2: Build
+
+> **Team escalation (Mode 3)**: if the work splits into ≥3 non-overlapping
+> file-ownership streams, escalate to `/team-feature`, `/team-spawn fullstack`,
+> or `/team-spawn migration`. Requires reading
+> `skills/parallel-feature-development/SKILL.md` and
+> `skills/team-composition-patterns/SKILL.md` first. Full rules in
+> [`agent-teams-integration.md#phase-2-build--team-feature--team-spawn-fullstack--team-spawn-migration`](./agent-teams-integration.md#phase-2-build--team-feature--team-spawn-fullstack--team-spawn-migration).
 
 ### Implementation Standards
 
@@ -218,6 +237,14 @@ See `references/agents.md` → code-architect section for full definition.
 
 ## Phase 3: Review
 
+> **Team escalation (Mode 3)**: if the change touches auth, data, public
+> APIs, UI, or performance hot paths — or requires ≥4 review dimensions —
+> escalate to `/team-review <target> --reviewers …` or `/team-spawn security`.
+> Team findings are **combined** with solo `code-reviewer × 3` output and
+> script results. Dimension allocation and dedup rules in
+> `skills/multi-reviewer-patterns/SKILL.md`; full command mapping in
+> [`agent-teams-integration.md#phase-3-review-and-phase-7-validate--team-review--team-spawn-security`](./agent-teams-integration.md#phase-3-review-and-phase-7-validate--team-review--team-spawn-security).
+
 ### Agent-Enhanced Review
 
 When subagents are available, launch 3 **code-reviewer** agents in parallel
@@ -318,6 +345,14 @@ The following patterns indicate a band-aid fix and MUST be rejected:
 
 ## Phase 5: Fix
 
+> **Team escalation (Mode 3)**: if initial root-cause analysis surfaces ≥2
+> plausible hypotheses, escalate to
+> `/team-debug "<error>" --hypotheses 3 --scope module` and apply the
+> Analysis of Competing Hypotheses (ACH) framework from
+> `skills/parallel-debugging/SKILL.md`. The band-aid rejection rules below
+> still apply to the chosen fix. See
+> [`agent-teams-integration.md#phase-5-fix--team-debug`](./agent-teams-integration.md#phase-5-fix--team-debug).
+
 ### Root Cause Analysis Process
 
 1. **Reproduce**: Confirm the failure is consistent and understood
@@ -365,6 +400,11 @@ The following patterns indicate a band-aid fix and MUST be rejected:
 
 ## Phase 7: Validate
 
+> **Team escalation (Mode 3)**: final validation re-uses the Phase 3
+> escalation rules — if the change spans multiple high-risk dimensions, run
+> `/team-review <target> --reviewers security,performance,architecture,testing,accessibility`
+> for a full-dimension consolidated report before Ship.
+
 ### Validation Matrix
 
 | Check | Threshold | Blocking? |
@@ -395,9 +435,15 @@ ELSE:
 
 ## Phase 8: Ship
 
+> **Team lifecycle (Mode 3)**: every team launched via `/team-spawn`,
+> `/team-feature`, `/team-debug`, or `/team-review` must be terminated with
+> `/team-shutdown <team>` before Ship completes. Leaving teams running
+> wastes API resources and pollutes `~/.claude/teams/`.
+
 ### Delivery Checklist
 
 - [ ] All quality gates pass
+- [ ] All spawned teams have been gracefully shut down via `/team-shutdown`
 - [ ] Assessment report generated
 - [ ] Iteration plan shows final PASS status
 - [ ] No unresolved TODOs in delivered code

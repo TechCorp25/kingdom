@@ -7,16 +7,23 @@
 3. [code-architect Agent](#code-architect-agent)
 4. [code-reviewer Agent](#code-reviewer-agent)
 5. [Agent Orchestration Patterns](#agent-orchestration-patterns)
+6. [Team Agents (Mode 3)](#team-agents-mode-3)
 
 ---
 
 ## Agent Overview
 
-The automate-dev workflow uses three specialised subagent types that can be
-launched via the `delegation` skill (`subagent`, `startAsyncSubagent`) or
-the `architect` function from the `code_review` skill. Each agent has a
-distinct responsibility and is optimised for a specific phase of the
-development loop.
+The automate-dev workflow uses two complementary agent families:
+
+1. **Solo subagents** (this section, primary focus) — three specialised types
+   launched via the `delegation` skill (`subagent`, `startAsyncSubagent`) or
+   the `architect` function from the `code_review` skill. Used in Modes 1 & 2.
+2. **Team agents** (see [Team Agents](#team-agents-mode-3) below) — four
+   coordinated types launched as a managed team via `/team-*` slash commands.
+   Used in Mode 3 for parallel multi-stream work.
+
+Each solo agent has a distinct responsibility and is optimised for a specific
+phase of the development loop.
 
 ### Agent Definition Files
 
@@ -410,3 +417,113 @@ await waitForBackgroundTasks();
 // Combine agent findings with script results
 // Present unified quality report
 ```
+
+### Pattern 6: Solo + Team Combination (Mode 3)
+
+For complex work, run solo agents AND a team in parallel. Solo agents
+provide cross-cutting subjective judgment while the team provides
+parallel breadth on dimension-specific concerns.
+
+```
+# Phase 3 (Review) — comprehensive quality assessment
+1. Solo: code-reviewer × 3 (simplicity / correctness / conventions)
+2. Team: /team-review --reviewers security,performance,accessibility,testing
+3. Scripts: code_reviewer.py + fix_validator.py
+4. Synthesise: deduplicate per multi-reviewer-patterns/SKILL.md
+```
+
+The deduplication rules merge solo and team findings at the same
+`file:line` and apply the higher severity if they conflict.
+
+---
+
+## Team Agents (Mode 3)
+
+When the workflow escalates to Mode 3 (Team Coordination), four additional
+agent personas are launched as a managed team via `/team-*` slash commands.
+Definitions live in `agent-teams/agents/`.
+
+### Team Agent Definition Files
+
+Install to `.claude/agents/` alongside the solo agents:
+
+| File | Install To |
+|------|-----------|
+| `agent-teams/agents/team-lead.md` | `.claude/agents/team-lead.md` |
+| `agent-teams/agents/team-implementer.md` | `.claude/agents/team-implementer.md` |
+| `agent-teams/agents/team-reviewer.md` | `.claude/agents/team-reviewer.md` |
+| `agent-teams/agents/team-debugger.md` | `.claude/agents/team-debugger.md` |
+
+### Team Agent Summary
+
+| Agent | Colour | Model | Role | Primary Command |
+|-------|--------|-------|------|-----------------|
+| **team-lead** | blue | opus | Decompose work, assign file ownership, monitor, synthesise | All `/team-*` (orchestration role) |
+| **team-implementer** | yellow | opus | Build within strict file-ownership boundaries; coordinate at integration points | `/team-feature`, `/team-spawn fullstack/migration` |
+| **team-reviewer** | green | opus | Single-dimension review (security / perf / arch / testing / a11y) | `/team-review`, `/team-spawn security` |
+| **team-debugger** | red | opus | Hypothesis-driven investigation with confidence ratings | `/team-debug` |
+
+### When to Use Team Agents vs Solo Subagents
+
+| Situation | Use Solo | Use Team |
+|-----------|----------|----------|
+| Single-file change | code-reviewer × 3 | — |
+| ≥3 file-ownership streams | — | `/team-feature` (lead + implementers) |
+| Standard 3-dimension review (simplicity/correctness/conventions) | code-reviewer × 3 | — |
+| 4-5 dimension review with security focus | — | `/team-review` |
+| Single-cause bug investigation | code-explorer + manual analysis | — |
+| Multi-cause bug requiring competing hypotheses | — | `/team-debug` |
+| Architecture for known feature | code-architect × 2-3 | — |
+| Cross-layer feature (FE + BE + tests + infra) | — | `/team-spawn fullstack` |
+| Codebase migration | — | `/team-spawn migration` |
+| Comprehensive security audit | — | `/team-spawn security` |
+| Parallel codebase + library + doc research | — | `/team-spawn research` |
+
+### Team Lifecycle (mandatory for every spawn)
+
+```
+spawn → assign tasks → monitor → collect → synthesise → shutdown → cleanup
+```
+
+Every team launched via Mode 3 must terminate via `/team-shutdown` before
+the workflow declares Phase 8 (Ship) complete. See
+`references/agent-teams-integration.md` for the full lifecycle specification
+and pre-flight checklist.
+
+### Team Agent Constraints
+
+The team agents enforce internal constraints that the workflow relies on:
+
+- **team-lead**: One owner per file (Cardinal Rule); never assigns vague or
+  overlapping tasks; uses TaskUpdate for status (never structured JSON
+  messages); refers to teammates by NAME, never UUID.
+- **team-implementer**: Never modifies unassigned files; references
+  interface contracts but never mutates them; reports blockers immediately
+  rather than working around them.
+- **team-reviewer**: Stays strictly within assigned dimension; cites
+  `file:line` for every finding; rates severity evidence-based, not
+  opinion-based; honestly reports "no findings".
+- **team-debugger**: Reports both confirming AND contradicting evidence;
+  scopes claims to what was actually verified; stays focused on assigned
+  hypothesis even when other leads emerge (reports tangents, doesn't chase).
+
+These constraints are enforced by the agent definitions themselves; the
+workflow does not need to re-state them in task descriptions.
+
+### Internal Skills That Govern Team Behaviour
+
+When operating in Mode 3, load the matching internal skill from `skills/`
+before invoking the command. These skills define how the team agents
+should be coordinated:
+
+| Skill (in `skills/`) | Governs |
+|---------------------|---------|
+| `team-composition-patterns/SKILL.md` | Team sizing, preset selection, agent-type selection |
+| `parallel-feature-development/SKILL.md` | File ownership strategies, conflict avoidance, integration patterns |
+| `multi-reviewer-patterns/SKILL.md` | Review-dimension allocation, finding deduplication, severity calibration |
+| `parallel-debugging/SKILL.md` | Hypothesis generation, evidence standards, confidence levels, arbitration |
+| `task-coordination-strategies/SKILL.md` | Task decomposition, dependency graphs, workload monitoring |
+| `team-communication-protocols/SKILL.md` | Message-type selection, plan approval, shutdown procedures |
+
+See `references/agent-teams-integration.md` for the full command-by-phase
+mapping, decision trees, and quality-gate preservation rules.

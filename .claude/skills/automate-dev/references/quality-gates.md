@@ -8,6 +8,11 @@
 4. [Band-Aid Detection](#band-aid-detection)
 5. [Deployment Readiness](#deployment-readiness)
 
+> **Mode 3 parity**: the gates below apply identically to solo-subagent
+> output and to Mode 3 agent-team output — synthesised team results re-enter
+> the standard pipeline with no relaxation. See
+> [`agent-teams-integration.md#quality-gate-preservation`](./agent-teams-integration.md#quality-gate-preservation).
+
 ---
 
 ## Gate Definitions

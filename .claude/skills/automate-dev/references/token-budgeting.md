@@ -10,6 +10,14 @@
 6. [Monitoring and Alerts](#monitoring-and-alerts)
 7. [Cost Optimisation Patterns](#cost-optimisation-patterns)
 
+> **Mode 3 adjustments**: when a phase escalates to an agent team, its
+> budget scales by team size. Tag usage with `--tag team:<team-name>` on
+> `token_budget_monitor.py record` so per-team cost can be audited later
+> via `summary --tag` or `report --tag`. The 90% threshold halts new
+> parallel team launches first; existing teammates finish their current
+> task. See
+> [`agent-teams-integration.md#token-budget-adjustments`](./agent-teams-integration.md#token-budget-adjustments).
+
 ---
 
 ## Overview

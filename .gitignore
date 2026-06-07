@@ -35,3 +35,7 @@ data/indexes/
 # Generated artifact outputs (snapshots, exports) are not committed.
 /artifacts/*/*
 !/artifacts/*/.gitkeep
+
+# Skill install blob — preserved in artifacts/, never tracked
+artifacts/Archive.zip
+.claude/skills/automate-dev/Archive.zip
