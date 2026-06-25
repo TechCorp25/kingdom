@@ -109,9 +109,12 @@ efficient.
 
 ## Model Deployment Strategy
 
-Optimised for **Claude Opus 4.7** (`claude-opus-4-7`) as the flagship model
+Optimised for **Claude Opus 4.8** (`claude-opus-4-8`) as the flagship model
 for high-difficulty workflows, with Sonnet retained for exploration and
-breadth-focused work.
+breadth-focused work. Opus 4.8 keeps the same request surface as Opus 4.7
+(adaptive thinking only, `xhigh` effort, no sampling parameters), so moving
+from a 4.7 deployment is a model-ID swap plus light prompt re-tuning — no
+breaking changes.
 
 ### Difficulty-Based Routing
 
@@ -119,11 +122,16 @@ breadth-focused work.
 |-----------|-------|--------|----------|
 | low | sonnet | default | Simple reads, formatting |
 | medium | sonnet | high | Multi-file tracing, routine refactors |
-| **high** | **claude-opus-4-7** | **xhigh** | Code review, architecture, self-assessment, quality gates |
-| xhigh | **claude-opus-4-7** | **xhigh** | Complex refactoring, subtle debugging |
-| max | **claude-opus-4-7** | **max** | Formal verification, security audits |
+| **high** | **claude-opus-4-8** | **xhigh** | Code review, architecture, self-assessment, quality gates |
+| xhigh | **claude-opus-4-8** | **xhigh** | Complex refactoring, subtle debugging |
+| max | **claude-opus-4-8** | **max** | Formal verification, security audits |
 
-### Opus 4.7 Is Required For
+`xhigh` is the recommended effort for the coding and agentic work this skill
+performs. Treat effort as a per-task dial, not a fixed maximum: for routine,
+latency-sensitive, or cost-sensitive steps, sweep down to `high`/`medium` —
+Opus 4.8 often matches `xhigh` quality at lower effort and cost.
+
+### Opus 4.8 Is Required For
 
 - **Agent output self-review** — any agent reviewing work produced by another agent
 - **Code quality assessment** — simplicity, DRY, elegance judgment
@@ -139,43 +147,21 @@ breadth-focused work.
 - **Test execution orchestration** — mostly deterministic
 - **Deployment readiness checks** — script-based validation
 
-See `references/model-deployment.md` for complete strategy, migration guide,
-and prompt adjustments for Opus 4.7's literal instruction following.
+### Opus 4.8 Behavioural Notes
 
-## Model Deployment Strategy
+Opus 4.8 is more autonomous yet more conservative about reaching for subagents
+than earlier models — when a phase needs parallel exploration, review, or
+debugging, instruct it **explicitly** (the "launch N subagents in parallel"
+patterns and the `/team-*` commands below do exactly this). It also narrates
+more and asks for confirmation more often; the agent prompts in `agents/` and
+`agent-teams/agents/` are tuned to keep output focused and decisions autonomous
+within scope. For operator instructions that arrive mid-run, Opus 4.8 supports
+**mid-session system prompts** (no cache invalidation) — see
+`references/model-deployment.md`.
 
-Optimised for **Claude Opus 4.7** (`claude-opus-4-7`) as the flagship model
-for high-difficulty workflows, with Sonnet retained for exploration and
-breadth-focused work.
-
-### Difficulty-Based Routing
-
-| Difficulty | Model | Effort | Examples |
-|-----------|-------|--------|----------|
-| low | sonnet | default | Simple reads, formatting |
-| medium | sonnet | high | Multi-file tracing, routine refactors |
-| **high** | **claude-opus-4-7** | **xhigh** | Code review, architecture, self-assessment, quality gates |
-| xhigh | **claude-opus-4-7** | **xhigh** | Complex refactoring, subtle debugging |
-| max | **claude-opus-4-7** | **max** | Formal verification, security audits |
-
-### Opus 4.7 Is Required For
-
-- **Agent output self-review** — any agent reviewing work produced by another agent
-- **Code quality assessment** — simplicity, DRY, elegance judgment
-- **Linting judgment** — subjective quality gates beyond rule-based scripts
-- **Architectural decisions** — choosing between implementation approaches
-- **Final validation (Phase 7)** — comprehensive quality gate before ship
-- **Any task classified as `high` difficulty or above**
-
-### Retained Sonnet Usage
-
-- **code-explorer agents** — breadth-focused codebase tracing (medium difficulty)
-- **Initial inventory and dependency mapping** — rule-based, high-volume work
-- **Test execution orchestration** — mostly deterministic
-- **Deployment readiness checks** — script-based validation
-
-See `references/model-deployment.md` for complete strategy, migration guide,
-and prompt adjustments for Opus 4.7's literal instruction following.
+See `references/model-deployment.md` for the complete strategy, the
+Opus 4.7→4.8 migration guide, mid-session steering, and prompt adjustments for
+Opus 4.8's literal instruction following.
 
 ## Specialised Agents
 
@@ -190,8 +176,8 @@ comprehensive coverage.
 | Agent | Role | Model | Effort | Primary Phase |
 |-------|------|-------|--------|--------------|
 | **code-explorer** | Deep codebase tracing and pattern discovery | sonnet | high | 1 (Analyse) |
-| **code-architect** | Architecture design and implementation blueprints | **claude-opus-4-7** | **xhigh** | 2 (Build) |
-| **code-reviewer** | Quality review — simplicity, correctness, conventions | **claude-opus-4-7** | **xhigh** | 3 (Review), 7 (Validate) |
+| **code-architect** | Architecture design and implementation blueprints | **claude-opus-4-8** | **xhigh** | 2 (Build) |
+| **code-reviewer** | Quality review — simplicity, correctness, conventions | **claude-opus-4-8** | **xhigh** | 3 (Review), 7 (Validate) |
 
 Solo subagent definitions live in `agents/`. Read `references/agents.md` for
 full prompts and orchestration patterns.
@@ -204,10 +190,10 @@ requires multi-dimensional parallel analysis.
 
 | Agent | Role | Model | Colour | Primary Use |
 |-------|------|-------|--------|-------------|
-| **team-lead** | Orchestrator: decomposes work, manages file ownership, synthesises results | **opus** | blue | Coordinate `/team-feature`, `/team-spawn fullstack/migration` |
-| **team-implementer** | Builds within strict file ownership boundaries; coordinates at integration points | **opus** | yellow | `/team-feature`, `/team-spawn fullstack/migration` |
-| **team-reviewer** | Single-dimension reviewer (security / performance / architecture / testing / accessibility) | **opus** | green | `/team-review`, `/team-spawn security` |
-| **team-debugger** | Hypothesis-driven investigator with confidence ratings and causal chains | **opus** | red | `/team-debug` (Analysis of Competing Hypotheses) |
+| **team-lead** | Orchestrator: decomposes work, manages file ownership, synthesises results | **claude-opus-4-8** | blue | Coordinate `/team-feature`, `/team-spawn fullstack/migration` |
+| **team-implementer** | Builds within strict file ownership boundaries; coordinates at integration points | **claude-opus-4-8** | yellow | `/team-feature`, `/team-spawn fullstack/migration` |
+| **team-reviewer** | Single-dimension reviewer (security / performance / architecture / testing / accessibility) | **claude-opus-4-8** | green | `/team-review`, `/team-spawn security` |
+| **team-debugger** | Hypothesis-driven investigator with confidence ratings and causal chains | **claude-opus-4-8** | red | `/team-debug` (Analysis of Competing Hypotheses) |
 
 Team agent definitions live in `agent-teams/agents/`. Read
 `references/agent-teams-integration.md` for command-by-phase mapping and
@@ -243,17 +229,18 @@ Phase 3 (Review):
 
 ## Token Budgeting
 
-Opus 4.7 uses a new tokenizer (1.0–1.35× tokens vs 4.6) and `xhigh` effort
+Opus 4.8 shares the Opus 4.7 tokenizer (1.0–1.35× tokens vs the older 4.6
+tokenizer; counts are unchanged when migrating from 4.7) and `xhigh` effort
 increases reasoning depth. Cost control is enforced at three layers:
 
 1. **Phase budgets** — default caps per workflow phase
 2. **Agent budgets** — per-invocation limits (instructed in agent prompts)
 3. **Task budgets** — total workflow cap (via `token_budget_monitor.py`
-   and Opus 4.7's `task_budget` API feature)
+   and Opus 4.8's `task_budget` API feature)
 
 ### Default Budgets (medium difficulty)
 
-| Phase | Budget | Typical Cost (Opus 4.7) |
+| Phase | Budget | Typical Cost (Opus 4.8) |
 |-------|--------|------------------------|
 | 1 Analyse | 80,000 | ~$0.50 |
 | 2 Build | 150,000 | ~$0.95 |
@@ -287,7 +274,7 @@ python scripts/token_budget_monitor.py check <project_root> \
 
 # After each phase
 python scripts/token_budget_monitor.py record <project_root> \
-    --phase review --tokens 115000 --model claude-opus-4-7
+    --phase review --tokens 115000 --model claude-opus-4-8
 
 # Generate report at end
 python scripts/token_budget_monitor.py report <project_root>
@@ -587,7 +574,7 @@ Load these as needed during workflow execution:
 | Code Simplification | `references/code-simplification.md` | Simplification rules and patterns |
 | Agents | `references/agents.md` | Solo agent definitions, prompts, orchestration patterns |
 | Feature Development | `references/feature-development.md` | Guided feature development workflow (FD-1 through FD-7) |
-| Model Deployment | `references/model-deployment.md` | Opus 4.7 strategy, difficulty classification, routing |
+| Model Deployment | `references/model-deployment.md` | Opus 4.8 strategy, difficulty classification, routing |
 | Token Budgeting | `references/token-budgeting.md` | Phase budgets, caching, monitoring, cost patterns |
 | **Agent Teams Integration** | `references/agent-teams-integration.md` | When to escalate to teams, command-by-phase mapping |
 
@@ -612,8 +599,9 @@ heuristics (sizing, dimensions, ownership rules) rather than improvising.
 
 ## Slash Commands (Team Coordination)
 
-Seven slash commands ship with this skill for team lifecycle and operations.
-Each requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in the environment.
+Eight slash commands ship with this skill. The seven `/team-*` commands handle
+team lifecycle and operations and require `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`
+in the environment; `/feature-development` (Mode 2) runs in any environment.
 
 | Command | Purpose | Primary Phase |
 |---------|---------|---------------|
@@ -724,9 +712,9 @@ File: `.automate-dev/iteration_plan.md`
 
 ### Requirements
 
-- **Claude Code v2.1.111 or later** — required for `claude-opus-4-7` model
-  (earlier versions should run `claude update`)
-- **Opus 4.7 access** — verify with `/model claude-opus-4-7` in Claude Code
+- **A Claude Code version that supports `claude-opus-4-8`** — run `claude update`
+  if `/model claude-opus-4-8` is unavailable
+- **Opus 4.8 access** — verify with `/model claude-opus-4-8` in Claude Code
 - **Python 3.8+** — for scripts
 - **Optional**: Prompt caching enabled for cost reduction on repeated runs
 
@@ -767,14 +755,14 @@ are unavailable but the skill degrades gracefully to solo-subagent mode.
 
 ### Configure Default Model (Optional)
 
-To pin Opus 4.7 globally in Claude Code:
+To pin Opus 4.8 globally in Claude Code:
 
 ```bash
-export ANTHROPIC_DEFAULT_OPUS_MODEL=claude-opus-4-7
+export ANTHROPIC_DEFAULT_OPUS_MODEL=claude-opus-4-8
 export ANTHROPIC_DEFAULT_EFFORT=xhigh
 
 # Or set per-session
-/model claude-opus-4-7
+/model claude-opus-4-8
 /effort xhigh
 ```
 
@@ -803,14 +791,14 @@ automate-dev/
 ├── LICENSE.txt                           Apache 2.0
 ├── agents/                               Solo agent definitions (Modes 1 & 2)
 │   ├── code-explorer.md                  Codebase tracing (sonnet, yellow)
-│   ├── code-architect.md                 Architecture design (claude-opus-4-7 xhigh, green)
-│   └── code-reviewer.md                  Deep quality review (claude-opus-4-7 xhigh, red)
+│   ├── code-architect.md                 Architecture design (claude-opus-4-8 xhigh, green)
+│   └── code-reviewer.md                  Deep quality review (claude-opus-4-8 xhigh, red)
 ├── agent-teams/                          Team agent definitions (Mode 3)
 │   └── agents/
-│       ├── team-lead.md                  Orchestrator (opus, blue) — decomposes & synthesises
-│       ├── team-implementer.md           Parallel builder (opus, yellow) — file-ownership boundaries
-│       ├── team-reviewer.md              Single-dimension reviewer (opus, green)
-│       └── team-debugger.md              Hypothesis investigator (opus, red)
+│       ├── team-lead.md                  Orchestrator (claude-opus-4-8, blue) — decomposes & synthesises
+│       ├── team-implementer.md           Parallel builder (claude-opus-4-8, yellow) — file-ownership boundaries
+│       ├── team-reviewer.md              Single-dimension reviewer (claude-opus-4-8, green)
+│       └── team-debugger.md              Hypothesis investigator (claude-opus-4-8, red)
 ├── commands/                             Slash commands for Claude Code
 │   ├── feature-development.md            Guided 7-phase feature development workflow (Mode 2)
 │   ├── team-spawn.md                     Spawn team via preset or custom composition
@@ -835,7 +823,7 @@ automate-dev/
 │   ├── iteration-protocols.md            Loop management, stall detection, escalation
 │   ├── quality-gates.md                  Thresholds, scoring, pass/fail criteria
 │   ├── code-simplification.md            Simplification rules and patterns
-│   ├── model-deployment.md               Opus 4.7 routing strategy, difficulty classification
+│   ├── model-deployment.md               Opus 4.8 routing strategy, difficulty classification
 │   └── token-budgeting.md                Phase budgets, prompt caching, cost patterns
 └── scripts/                              Automated analysis and enforcement scripts
     ├── dev_orchestrator.py               Main workflow engine (analyse/test/validate/status)

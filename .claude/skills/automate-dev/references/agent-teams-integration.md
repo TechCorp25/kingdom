@@ -51,8 +51,8 @@ faster and cheaper.
 
 ## Team Agents
 
-Four team-agent personas live in `agent-teams/agents/`. Each is `model: opus`
-to align with the automate-dev `xhigh` quality bar.
+Four team-agent personas live in `agent-teams/agents/`. Each is
+`model: claude-opus-4-8` to align with the automate-dev `xhigh` quality bar.
 
 | Agent | Colour | Role | Key Constraints |
 |-------|--------|------|-----------------|
@@ -311,7 +311,7 @@ Track per-team usage by passing the team name as a tag to
 
 ```bash
 python scripts/token_budget_monitor.py record <project_root> \
-    --phase review --tokens 580000 --model claude-opus-4-7 \
+    --phase review --tokens 580000 --model claude-opus-4-8 \
     --tag team:review-team
 ```
 
