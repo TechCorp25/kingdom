@@ -5,8 +5,9 @@ automate-dev workflow.
 
 Initialises token budgets per phase, records usage as phases execute,
 and enforces limits to prevent runaway costs during agentic loops.
-Optimised for Claude Opus 4.7 with its 1.0-1.35x token multiplier
-over Opus 4.6.
+Optimised for Claude Opus 4.8, which shares the Opus 4.7 tokenizer
+(1.0-1.35x tokens vs the older Opus 4.6 tokenizer; token counts are
+unchanged when migrating from Opus 4.7).
 
 Usage:
     python token_budget_monitor.py init <project_root> [--total-budget N] [--difficulty LEVEL]
@@ -29,9 +30,12 @@ from pathlib import Path
 from typing import Optional
 
 
-# Opus 4.7 pricing: $5/$25 per MTok input/output
+# Opus 4.8 pricing: $5/$25 per MTok input/output (unchanged from Opus 4.7/4.6)
 # Sonnet 4.6 pricing: $3/$15 per MTok input/output
+# Earlier Opus identifiers are retained so historical records and pinned
+# deployments still price correctly.
 MODEL_PRICING = {
+    'claude-opus-4-8': {'input': 5.0, 'output': 25.0},
     'claude-opus-4-7': {'input': 5.0, 'output': 25.0},
     'claude-opus-4-6': {'input': 5.0, 'output': 25.0},
     'opus': {'input': 5.0, 'output': 25.0},
@@ -157,7 +161,7 @@ def calculate_phase_budgets(total_budget: int, difficulty: str) -> dict:
 
 def calculate_cost(tokens: int, model: str, io_type: str = 'mixed') -> float:
     """Calculate approximate USD cost for tokens on a given model."""
-    pricing = MODEL_PRICING.get(model, MODEL_PRICING['claude-opus-4-7'])
+    pricing = MODEL_PRICING.get(model, MODEL_PRICING['claude-opus-4-8'])
     if io_type == 'input':
         return (tokens / 1_000_000) * pricing['input']
     if io_type == 'output':
@@ -300,7 +304,7 @@ def cmd_init(args: argparse.Namespace) -> None:
         'difficulty': difficulty,
         'phase_budgets': phase_budgets,
         'estimated_cost_usd': {
-            'all_opus_4_7': round(calculate_cost(total_budget, 'claude-opus-4-7'), 2),
+            'all_opus_4_8': round(calculate_cost(total_budget, 'claude-opus-4-8'), 2),
             'all_sonnet_4_6': round(calculate_cost(total_budget, 'claude-sonnet-4-6'), 2),
         },
     }, indent=2))
@@ -342,7 +346,7 @@ def cmd_record(args: argparse.Namespace) -> None:
     phase_data['tokens_used'] += args.tokens
     phase_data['invocations'] += 1
 
-    model = args.model or 'claude-opus-4-7'
+    model = args.model or 'claude-opus-4-8'
     by_model = phase_data.get('by_model', {})
     by_model[model] = by_model.get(model, 0) + args.tokens
     phase_data['by_model'] = by_model

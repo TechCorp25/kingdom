@@ -41,23 +41,21 @@ agents without the specialised persona, model assignment, or tool constraints.
 
 ### Agent Summary
 
-### Agent Summary
-
 | Agent | Primary Phase | Responsibility | Model | Effort | Colour |
 |-------|--------------|----------------|-------|--------|--------|
 | code-explorer | 1 (Analyse) | Deep codebase tracing and pattern discovery | `sonnet` | high | yellow |
-| code-architect | 2 (Build) | Architecture design and implementation blueprints | `claude-opus-4-7` | xhigh | green |
-| code-reviewer | 3 (Review), 7 (Validate) | Quality review — simplicity, correctness, conventions | `claude-opus-4-7` | xhigh | red |
+| code-architect | 2 (Build) | Architecture design and implementation blueprints | `claude-opus-4-8` | xhigh | green |
+| code-reviewer | 3 (Review), 7 (Validate) | Quality review — simplicity, correctness, conventions | `claude-opus-4-8` | xhigh | red |
 
 **Model rationale** (see `references/model-deployment.md` for full strategy):
 
 - **code-explorer** uses sonnet — exploration is breadth-focused (medium
   difficulty); sonnet is fast and cost-effective for tracing and pattern
   discovery across many files.
-- **code-architect** uses Opus 4.7 with `xhigh` effort — architectural
+- **code-architect** uses Opus 4.8 with `xhigh` effort — architectural
   decisions fit Anthropic's `xhigh` use case (complex multi-file decisions,
   high difficulty) and benefit from deeper reasoning.
-- **code-reviewer** uses Opus 4.7 with `xhigh` effort — reviewing agent
+- **code-reviewer** uses Opus 4.8 with `xhigh` effort — reviewing agent
   output is self-assessment territory; quality judgment, linting, and
   conventions review are classified as high+ difficulty.
 
@@ -458,10 +456,10 @@ Install to `.claude/agents/` alongside the solo agents:
 
 | Agent | Colour | Model | Role | Primary Command |
 |-------|--------|-------|------|-----------------|
-| **team-lead** | blue | opus | Decompose work, assign file ownership, monitor, synthesise | All `/team-*` (orchestration role) |
-| **team-implementer** | yellow | opus | Build within strict file-ownership boundaries; coordinate at integration points | `/team-feature`, `/team-spawn fullstack/migration` |
-| **team-reviewer** | green | opus | Single-dimension review (security / perf / arch / testing / a11y) | `/team-review`, `/team-spawn security` |
-| **team-debugger** | red | opus | Hypothesis-driven investigation with confidence ratings | `/team-debug` |
+| **team-lead** | blue | claude-opus-4-8 | Decompose work, assign file ownership, monitor, synthesise | All `/team-*` (orchestration role) |
+| **team-implementer** | yellow | claude-opus-4-8 | Build within strict file-ownership boundaries; coordinate at integration points | `/team-feature`, `/team-spawn fullstack/migration` |
+| **team-reviewer** | green | claude-opus-4-8 | Single-dimension review (security / perf / arch / testing / a11y) | `/team-review`, `/team-spawn security` |
+| **team-debugger** | red | claude-opus-4-8 | Hypothesis-driven investigation with confidence ratings | `/team-debug` |
 
 ### When to Use Team Agents vs Solo Subagents
 

@@ -1,4 +1,4 @@
-# Token Budgeting — Opus 4.7 Efficiency Strategies
+# Token Budgeting — Opus 4.8 Efficiency Strategies
 
 ## Table of Contents
 
@@ -22,16 +22,17 @@
 
 ## Overview
 
-Opus 4.7 uses a new tokenizer that produces 1.0–1.35× more tokens than
-previous models. At $5/$25 per MTok, cost control matters. The automate-dev
+Opus 4.8 shares the Opus 4.7 tokenizer, which produces 1.0–1.35× more tokens
+than the older 4.6 tokenizer for the same text (counts are unchanged when
+migrating from 4.7). At $5/$25 per MTok, cost control matters. The automate-dev
 skill applies a three-layer budgeting strategy:
 
 1. **Phase budgets** — cap tokens per workflow phase
 2. **Agent budgets** — cap tokens per agent invocation
-3. **Task budgets** — cap tokens per complete workflow run (via Opus 4.7's
+3. **Task budgets** — cap tokens per complete workflow run (via Opus 4.8's
    task_budget feature)
 
-### Why Budgeting Matters for Opus 4.7
+### Why Budgeting Matters for Opus 4.8
 
 - Autonomous agentic loops can burn hundreds of thousands of tokens silently
 - `xhigh` effort level increases reasoning depth → more tokens
@@ -89,8 +90,8 @@ Launching 3 parallel agents simultaneously:
 | Configuration | Cost per Run (approximate) |
 |--------------|---------------------------|
 | 3× code-explorer (sonnet) | 3 × 40k × $3/$15 MTok ≈ $0.45 |
-| 3× code-architect (opus-4-7 xhigh) | 3 × 60k × $5/$25 MTok ≈ $1.35 |
-| 3× code-reviewer (opus-4-7 xhigh) | 3 × 45k × $5/$25 MTok ≈ $1.00 |
+| 3× code-architect (opus-4-8 xhigh) | 3 × 60k × $5/$25 MTok ≈ $1.35 |
+| 3× code-reviewer (opus-4-8 xhigh) | 3 × 45k × $5/$25 MTok ≈ $1.00 |
 
 ### Respecting Budgets in Agent Prompts
 
@@ -106,7 +107,7 @@ no preamble. Reference file:line rather than reproducing code."
 
 ## Prompt Caching Strategy
 
-Opus 4.7 supports prompt caching. Cache stable content to reduce cost on
+Opus 4.8 supports prompt caching. Cache stable content to reduce cost on
 repeated workflow runs.
 
 ### What to Cache
@@ -160,28 +161,47 @@ Prompt caching reduces input token cost by ~90% on cache hits:
 
 Across a 10-iteration workflow: ~$1.80 saved on input alone.
 
+### Preserve the Cache When Steering Mid-Run (Opus 4.8)
+
+Editing the top-level system prompt mid-session changes the cached prefix and
+forces every prior turn to be re-processed uncached. On Opus 4.8, deliver
+mid-run operator instructions (mode switch, revised constraint, updated budget)
+as a `{"role": "system", ...}` message appended to `messages` instead — the
+cached prefix stays intact, and the model treats it as an operator instruction.
+No beta header is required; on older models, fall back to a `<system-reminder>`
+block in a user turn.
+
 ---
 
 ## Task Budget Enforcement
 
-Opus 4.7 supports `task_budget` — a cap on total tokens for an entire
-agentic loop. The model pauses and asks for confirmation at the limit.
+Opus 4.8 supports `task_budget` (public beta) — a token ceiling for an entire
+agentic loop that the model is *aware of*. The server injects a running countdown
+so the model paces itself and finishes gracefully rather than being cut off at a
+hard limit. It is distinct from `max_tokens`, which stays the enforced
+per-response ceiling the model does not see. Minimum `task_budget.total` is
+20,000 tokens; the beta header is `task-budgets-2026-03-13`.
 
 ### Setting Task Budgets
 
 ```python
-# Via API
-response = client.messages.create(
-    model='claude-opus-4-7',
-    task_budget={'max_tokens': 1_000_000},
-    messages=[...]
-)
+# Via API (beta) — stream so a large max_tokens does not hit HTTP timeouts
+with client.beta.messages.stream(
+    model='claude-opus-4-8',
+    max_tokens=128_000,
+    output_config={
+        'effort': 'xhigh',
+        'task_budget': {'type': 'tokens', 'total': 1_000_000},
+    },
+    betas=['task-budgets-2026-03-13'],
+    messages=[...],
+) as stream:
+    response = stream.get_final_message()
 ```
 
-```bash
-# Via Claude Code
-/task-budget 1000000
-```
+In Claude Code, the skill's own `token_budget_monitor.py` is the
+budget-enforcement mechanism (below) — it tracks usage across phases and
+iterations independently of the API-level `task_budget`.
 
 ### Integration with automate-dev
 
@@ -301,7 +321,7 @@ on specific findings (depth):
 
 ```
 1. code-explorer (sonnet): Survey the codebase, identify 20 candidate files
-2. code-reviewer (opus-4-7): Deep review of the 3 most critical files
+2. code-reviewer (opus-4-8): Deep review of the 3 most critical files
 ```
 
 ### Pattern 6: Batch Reviews Across Files
