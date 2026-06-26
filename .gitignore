@@ -14,6 +14,9 @@ __pycache__/
 .env.*
 !.env.example
 
+# Claude Code — personal/machine-local overrides (committed: settings.json)
+.claude/settings.local.json
+
 # Node (if project tooling ever lands here)
 node_modules/
 

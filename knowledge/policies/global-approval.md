@@ -3,11 +3,22 @@
 `knowledge/global/**` holds the supreme operating contract and the environment/identity
 facts true in every session. It changes only with **manual owner approval**.
 
-## Enforcement (hard, not honour-system)
-`.claude/hooks/block-global-knowledge.sh` is a `PreToolUse` hook (matcher
-`Edit|Write|MultiEdit`, wired in `.claude/settings.json`). It blocks any edit whose
-`file_path` is under `knowledge/global/` — **except** `knowledge/global/_proposals/` —
-and returns exit 2 so CC sees the rejection reason.
+## Enforcement (two PreToolUse hooks + honour-system backstop)
+Both hooks are wired in `.claude/settings.json` and return exit 2 (with a reason) to
+block:
+- **File tools** — `block-global-knowledge.sh` (matcher `Edit|Write|MultiEdit`) blocks any
+  call whose `file_path` is under `knowledge/global/`, **except** `_proposals/`. This is
+  exact: the file path is known, so coverage is complete.
+- **Shell** — `block-global-bash.sh` (matcher `Bash`) blocks a command that references a
+  non-`_proposals/` global path together with a mutation form: redirect (`>`/`>>`), `tee`,
+  `sed -i`, `mv`/`cp`/`rm`/`ln`/`dd`/`truncate`/`install`/`rsync`, `git mv|rm|restore|checkout`
+  of a file, or `python open(...,'w')`. Reads (`cat`/`grep`/`ls`/`git log`/`git diff`) pass.
+
+The Bash gate is **heuristic** — shell can be obfuscated (base64, eval, an interpreter
+reading from stdin), so it cannot be airtight. It catches every realistic write/promotion
+form (all tested); the rule below is the backstop for the rest. Note the owner's promotion
+`git mv` runs in their **own terminal**, not through CC's Bash tool, so it is unaffected —
+and CC attempting that same `git mv` is correctly blocked (CC must not self-promote).
 
 ## The approved flow
 1. CC writes the proposed file to
