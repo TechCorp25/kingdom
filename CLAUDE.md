@@ -7,6 +7,35 @@ This file is the root memory for Claude Code. Rules here apply everywhere under
 `~/kingdom`. Each tracked project under `projects/` may carry its own `CLAUDE.md`
 for project-specific rules, loaded hierarchically when working in that subtree.
 
+## Operating contract (read first)
+
+Six hard requirements govern all work in Kingdom — the control plane and every tracked
+project. Authoritative copy: `knowledge/global/operating-contract.md` (owner-approval-gated;
+`.claude/hooks/session-start.sh` injects a summary on every session).
+
+1. **Token-efficient by default** — Grep/Glob over Read, the Explore agent for breadth,
+   batch parallel tool calls, pointers over pasted dumps. → `knowledge/policies/token-budget.md`
+2. **`/automate-dev` is the default** for code-changing work (build/fix/refactor/feature/
+   multi-file); questions, reads, and audits stay direct. → `knowledge/policies/automate-dev-default.md`
+3. **Checkpoint knowledge at every green-gated clean close** via
+   `scripts/maintenance/knowledge-checkpoint.py`. → `knowledge/policies/knowledge-maintenance.md`
+4. **`knowledge/global/` is owner-approval-gated** — never edit it directly (PreToolUse
+   hook blocks it); propose in `knowledge/global/_proposals/`. → `knowledge/policies/global-approval.md`
+5. **Push Kingdom + ensure a draft PR at green run close.** → `knowledge/policies/run-close.md`
+6. **Handover before any compact** — reserve context to write it; `/handover` to force one.
+   → `knowledge/policies/handover.md`
+
+### Knowledge base (`knowledge/`)
+
+| Path | Use |
+|---|---|
+| `knowledge/global/` | Supreme contract + environment/identity facts (owner-gated). |
+| `knowledge/policies/` | Operating rules + gotchas: merge hygiene, secrets, stack boundaries, Python/FastAPI traps. |
+| `knowledge/skills/` | How to wield skills here: automate-dev, frontend/design, review/verify. |
+| `knowledge/projects/` | `<slug>.md` per-project brief; `<slug>.state.md` is the auto-checkpointed live state. |
+
+See `knowledge/README.md` for how CC reaches these (SessionStart hook, this file, explicit Read, future MCP tools).
+
 ## Purpose
 
 Kingdom is the control plane for managing projects, repos, tasks, runs, memories,
