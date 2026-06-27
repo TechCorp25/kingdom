@@ -154,4 +154,4 @@ uv run alembic revision --autogenerate -m "msg"       # new migration
 ```
 
 ## Active Session Baseline
-Current source of truth: docs/kingdom-continuation-2026-05-31T11-30-00.md
+Current source of truth: docs/illuminate-my-gallery/kingdom-continuation-2026-06-13T13-00-00.md

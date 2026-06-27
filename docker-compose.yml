@@ -7,7 +7,8 @@ services:
     environment:
       POSTGRES_DB: kingdom
       POSTGRES_USER: kingdom
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me}
+      # Fail fast if unset rather than booting Postgres with a guessable default.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env (see .env.example)}
     ports:
       - "127.0.0.1:5432:5432"
     volumes:
