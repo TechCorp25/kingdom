@@ -61,8 +61,7 @@ def find_kingdom_root(start: Path) -> Path:
         if (candidate / "knowledge" / "projects").is_dir():
             return candidate.resolve()
     raise SystemExit(
-        "could not locate Kingdom root (no knowledge/projects found upward "
-        "and $KINGDOM_ROOT unset)"
+        "could not locate Kingdom root (no knowledge/projects found upward and $KINGDOM_ROOT unset)"
     )
 
 
@@ -107,16 +106,10 @@ def render_entry(
 ) -> str:
     """Render a single checkpoint block (newest-first ordering applied by caller)."""
     if gate_results:
-        gates_line = ", ".join(
-            f"{r.command} {'OK' if r.passed else 'FAIL'}" for r in gate_results
-        )
+        gates_line = ", ".join(f"{r.command} {'OK' if r.passed else 'FAIL'}" for r in gate_results)
     else:
         gates_line = "asserted green by caller (--assume-green)"
-    return (
-        f"## {timestamp} — {ref}\n"
-        f"- gates: {gates_line}\n"
-        f"- {summary.strip()}\n\n"
-    )
+    return f"## {timestamp} — {ref}\n- gates: {gates_line}\n- {summary.strip()}\n\n"
 
 
 def state_header(slug: str) -> str:
@@ -181,9 +174,7 @@ def main() -> int:
         raise SystemExit("refusing to write outside knowledge/projects/")
 
     repo = Path(args.repo).resolve() if args.repo else kingdom_root
-    gate_results = (
-        [] if args.assume_green else run_gates(list(args.gate), cwd=repo)
-    )
+    gate_results = [] if args.assume_green else run_gates(list(args.gate), cwd=repo)
     failed = [r.command for r in gate_results if not r.passed]
     if failed:
         print("\nNOT GREEN — checkpoint aborted, nothing written. Failing gates:")

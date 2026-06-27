@@ -41,6 +41,9 @@ packages = ["src/kingdom"]
 line-length = 100
 target-version = "py312"
 src = ["src", "tests"]
+# Vendored Claude Code skills are third-party; keep them out of our lint/format
+# scope so `ruff check .` / `ruff format .` reflect Kingdom's own code only.
+extend-exclude = [".claude"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "ASYNC", "SIM"]

@@ -92,9 +92,7 @@ def main() -> None:
     parser.add_argument(
         "--prune", action="store_true", help="remove projects not in the provided set"
     )
-    parser.add_argument(
-        "--dry-run", action="store_true", help="show changes without writing them"
-    )
+    parser.add_argument("--dry-run", action="store_true", help="show changes without writing them")
     args = parser.parse_args()
     asyncio.run(run(args.folders, args.prune, args.dry_run))
 
