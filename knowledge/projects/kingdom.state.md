@@ -4,6 +4,10 @@
 > Newest checkpoint first. Control-plane knowledge — not project business data.
 
 <!-- CHECKPOINTS -->
+## 2026-06-27T19:28:41Z — chore/orchestrator-housekeeping @ 75d5646 (dirty)
+- gates: uv run ruff check . OK, uv run mypy OK, uv run pytest -q OK
+- Post-merge housekeeping (orchestrator): PR #7 (hygiene audit, 8 findings) + PR #8 (kingdom-orchestrator skill bundle) squash-merged to main @ 75d5646. This pass: docs/orchestrator/ output-home convention (README); kingdom-facts.md self-listing (skills row now includes kingdom-orchestrator); ruff-cleaned scaffold_artifacts.py (UP017 datetime.UTC + E501 wraps), smoke-test still emits 4 artifacts. Gates green: ruff (.claude excluded) / mypy strict (16) / 11 pytest. Deferred: repoint CLAUDE.md Active Session Baseline to the orchestrator's first kingdom-continuation baseline once one exists (premature now).
+
 ## 2026-06-27T06:25:29Z — main @ 04e7bac (dirty)
 - gates: uv run ruff check . OK, uv run mypy OK, uv run pytest -q OK
 - Hygiene-audit deferred-items batch (2026-06-27, /automate-dev solo pass 2): F-1 collapsed the Python version triple — added .python-version=3.12 and rebuilt .venv on cpython-3.12.13 (was drifted 3.14.5) so venv matches the declared stack + ruff/mypy py312 targets; N-2 docker-compose POSTGRES_PASSWORD now fail-fast (${VAR:?...}) instead of a silent change_me default, and .env.example nudges a generated strong value; N-3 added docs/README.md documenting docs/<slug>/ layout + source-of-truth/retention convention (agents do not delete handovers); N-4 .env.example DATABASE_URL psycopg->asyncpg + comment, now matching src/kingdom/config.py default. Gates green on 3.12: ruff clean / mypy strict clean (16) / 11 pytest passed. All 8 audit findings now resolved (I-1,F-1,F-2,F-3,N-1,N-2,N-3,N-4). Working tree NOT committed/pushed (awaiting owner go-ahead).

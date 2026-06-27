@@ -16,6 +16,7 @@ Usage:
   python scaffold_artifacts.py cc-task    --out /mnt/user-data/outputs --title "venv triple realign"
   python scaffold_artifacts.py all        --out /mnt/user-data/outputs
 """
+
 from __future__ import annotations
 
 import argparse
@@ -35,7 +36,7 @@ ARTIFACTS: dict[str, tuple[str, str]] = {
 
 
 def _now_utc() -> _dt.datetime:
-    return _dt.datetime.now(_dt.timezone.utc)
+    return _dt.datetime.now(_dt.UTC)
 
 
 def compact_stamp(now: _dt.datetime) -> str:
@@ -78,17 +79,24 @@ def emit(
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Scaffold Kingdom-orchestrator artifact skeletons (files only).")
-    parser.add_argument("artifact", choices=[*ARTIFACTS.keys(), "all"], help="which artifact to scaffold")
+    parser = argparse.ArgumentParser(
+        description="Scaffold Kingdom-orchestrator artifact skeletons (files only)."
+    )
+    parser.add_argument(
+        "artifact", choices=[*ARTIFACTS.keys(), "all"], help="which artifact to scaffold"
+    )
     parser.add_argument("--out", default="out", help="output directory (default: ./out)")
     parser.add_argument("--title", default=None, help="short title for dr / cc-task")
-    parser.add_argument("--stamp", default=None, help="override compact stamp (default: UTC now, YYYYMMDDTHHMMz)")
+    parser.add_argument(
+        "--stamp", default=None, help="override compact stamp (default: UTC now, YYYYMMDDTHHMMz)"
+    )
     parser.add_argument("--mid-task", action="store_true", help="mark handoff as MID-TASK")
     args = parser.parse_args(argv)
 
     now = _now_utc()
     iso = iso_stamp(now)
-    # Honour an explicit close-time stamp for the filename; the in-doc ISO text stays the readable now()-derived form.
+    # Honour an explicit close-time stamp for the filename; the in-doc ISO text
+    # stays the readable now()-derived form.
     stamp = args.stamp if args.stamp else compact_stamp(now)
 
     out_dir = Path(args.out)
