@@ -4,6 +4,10 @@
 > Newest checkpoint first. Control-plane knowledge — not project business data.
 
 <!-- CHECKPOINTS -->
+## 2026-06-28T02:15:32Z — chore/closeout-pr-issue-link-rule @ 4e7930a
+- gates: asserted green by caller (--assume-green)
+- PR #10 (Option B — PR-issue-link rule) squash-merged to main @ 4e7930a: proposed operating-contract copy staged at knowledge/global/_proposals/2026-06-27T10-30-00-operating-contract-pr-issue-link.md (additive clause under Req 5; scope (i) Kingdom). Rule NOT live — owner promotes via 'git mv -f' (existing-file overwrite needs -f). Post-squash hygiene: main ff'd c6e1038->4e7930a, stale chore/pr-issue-link-rule deleted, local==origin. Close-out (branch chore/closeout-pr-issue-link-rule): Req-3 checkpoint + Req-6 CC continuation at docs/illuminate-my-gallery/kingdom-continuation-2026-06-28T11-23-06.md (the established Kingdom CC series). GOVERNANCE: docs/orchestrator/ continuation + CLAUDE.md baseline repoint deliberately NOT done by CC — that series is reserved for claude.ai-orchestrator-scaffolded + owner-committed baselines (docs/orchestrator/README.md); CLAUDE.md baseline left at docs/illuminate-my-gallery/kingdom-continuation-2026-06-13T13-00-00.md for the owner/orchestrator to advance. Outstanding for owner: git mv -f promotion to make rule live.
+
 ## 2026-06-27T19:28:41Z — chore/orchestrator-housekeeping @ 75d5646 (dirty)
 - gates: uv run ruff check . OK, uv run mypy OK, uv run pytest -q OK
 - Post-merge housekeeping (orchestrator): PR #7 (hygiene audit, 8 findings) + PR #8 (kingdom-orchestrator skill bundle) squash-merged to main @ 75d5646. This pass: docs/orchestrator/ output-home convention (README); kingdom-facts.md self-listing (skills row now includes kingdom-orchestrator); ruff-cleaned scaffold_artifacts.py (UP017 datetime.UTC + E501 wraps), smoke-test still emits 4 artifacts. Gates green: ruff (.claude excluded) / mypy strict (16) / 11 pytest. Deferred: repoint CLAUDE.md Active Session Baseline to the orchestrator's first kingdom-continuation baseline once one exists (premature now).
