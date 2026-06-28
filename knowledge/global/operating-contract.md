@@ -34,7 +34,9 @@ CC may read `global/` freely but may not write it. Proposed changes go to
 ## 5. Push at the end of every planned run that closes green
 When all todos are complete and green-gated, commit and push the **Kingdom** repo on its
 working branch and ensure a draft PR exists. Project repos follow their own per-project
-push discipline. → `knowledge/policies/run-close.md`
+push discipline. Every PR on the Kingdom repo links its tracking issue — a PR with no
+linked issue is not eligible to leave draft; tracked project repos keep their own
+per-project issue-link discipline. → `knowledge/policies/run-close.md`
 
 ## 6. A high-detail handover precedes every compact
 Produce a continuation/handover file at every clean task close **and before any context
